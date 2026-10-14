@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City &amp; Buildings Vocabulary – Translate into English</title>
+  <link rel="icon" type="image/png" sizes="48x48" href="favicon.png">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #16a34a;
+      --error: #dc2626;
+      --border: #e2e8f0;
+      --input-bg: #f1f5f9;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --overlay: rgba(15, 23, 42, 0.45);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .timer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      flex-wrap: wrap;
+    }
+    .timer {
+      font-size: 1.35rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--primary);
+    }
+    .timer.warning { color: #ea580c; }
+    .timer.danger { color: var(--error); animation: pulse 0.8s infinite; }
+    @keyframes pulse {
+      50% { opacity: 0.6; }
+    }
+    .score-display {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .score-display strong { color: var(--text); }
+    .controls {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    button {
+      font: inherit;
+      font-weight: 600;
+      padding: 0.55rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+    #checkBtn {
+      background: var(--primary);
+      color: white;
+    }
+    #checkBtn:hover:not(:disabled) { background: var(--primary-hover); }
+    #resetBtn {
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    #resetBtn:hover:not(:disabled) { background: #e2e8f0; }
+    .quiz-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .item {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--border);
+      transition: border-color 0.2s;
+    }
+    .item.correct { border-left-color: var(--success); }
+    .item.incorrect { border-left-color: var(--error); }
+    .item-num {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .prompt {
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .prompt .ru {
+      font-weight: 500;
+    }
+    .answer-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .answer-row input {
+      font: inherit;
+      font-size: 1rem;
+      padding: 0.4rem 0.65rem;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: var(--input-bg);
+      color: var(--text);
+      flex: 1;
+      min-width: 12rem;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .answer-row input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+    }
+    .answer-row input.ok {
+      border-color: var(--success);
+      background: #f0fdf4;
+    }
+    .answer-row input.bad {
+      border-color: var(--error);
+      background: #fef2f2;
+    }
+    .answer-row input:disabled {
+      opacity: 0.85;
+    }
+    .feedback {
+      font-size: 0.85rem;
+      margin-top: 0.4rem;
+      font-weight: 500;
+      display: none;
+    }
+    .feedback.show { display: block; }
+    .feedback.ok { color: var(--success); }
+    .feedback.bad { color: var(--error); }
+    .results-banner {
+      display: none;
+      text-align: center;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .results-banner.show { display: block; }
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      padding: 1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    /* Modal / pop-up */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 1.75rem 1.5rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      text-align: center;
+      animation: popIn 0.25s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-emoji {
+      font-size: 3rem;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .modal-score {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .modal-message {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+      line-height: 1.4;
+    }
+    .modal-close {
+      background: var(--primary);
+      color: white;
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .modal-close:hover { background: var(--primary-hover); }
+
+    @media (max-width: 520px) {
+      h1 { font-size: 1.25rem; }
+      .prompt { font-size: 0.98rem; }
+      .answer-row input { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>City &amp; Buildings Vocabulary</h1>
+      <p class="subtitle">Translate the Russian phrases into English. You have 5 minutes.</p>
+    </header>
+
+    <div class="timer-bar">
+      <div class="timer" id="timer">5:00</div>
+      <div class="score-display" id="scoreDisplay">Score: — / 16</div>
+      <div class="controls">
+        <button id="checkBtn">Check Answers</button>
+        <button id="resetBtn">New Round</button>
+      </div>
+    </div>
+
+    <div class="results-banner" id="resultsBanner"></div>
+
+    <div class="quiz-list" id="quizList"></div>
+
+    <footer>
+      Shuffle on every load · No real-time validation · Light theme
+    </footer>
+  </div>
+
+  <!-- Score pop-up -->
+  <div class="modal-overlay" id="scoreModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-emoji" id="modalEmoji">🎯</div>
+      <div class="modal-score" id="modalScore">0 / 16</div>
+      <div class="modal-message" id="modalMessage">Needs a lot more practice.</div>
+      <button class="modal-close" id="modalClose">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const ITEMS = [
+      {
+        id: 1,
+        ru: "обветшалый, полуразрушенный",
+        answers: ["dilapidated"]
+      },
+      {
+        id: 2,
+        ru: "привести в порядок, освежить",
+        answers: ["to spruce up", "spruce up"]
+      },
+      {
+        id: 3,
+        ru: "отремонтировать, обновить",
+        answers: ["to refurbish", "refurbish"]
+      },
+      {
+        id: 4,
+        ru: "снести, разрушить",
+        answers: ["to demolish", "demolish"]
+      },
+      {
+        id: 5,
+        ru: "окраина, окраины города",
+        answers: ["outskirts", "suburbs", "the outskirts", "the suburbs"]
+      },
+      {
+        id: 6,
+        ru: "трущобы",
+        answers: ["slums", "shanty towns", "shantytowns", "the slums"]
+      },
+      {
+        id: 7,
+        ru: "обшарпанный, потрёпанный",
+        answers: ["shabby"]
+      },
+      {
+        id: 8,
+        ru: "запущенный, обветшалый",
+        answers: ["rundown", "run-down", "run down"]
+      },
+      {
+        id: 9,
+        ru: "процветающий, активно развивающийся",
+        answers: ["thriving"]
+      },
+      {
+        id: 10,
+        ru: "перспективный, стремительно развивающийся",
+        answers: ["up-and-coming", "up and coming"]
+      },
+      {
+        id: 11,
+        ru: "комфортный для жизни",
+        answers: ["livable", "liveable"]
+      },
+      {
+        id: 12,
+        ru: "полностью перестроить; коренным образом изменить",
+        answers: ["to overhaul", "overhaul"]
+      },
+      {
+        id: 13,
+        ru: "утратить свою самобытность",
+        answers: ["to lose its character", "lose its character"]
+      },
+      {
+        id: 14,
+        ru: "сбежать от городской суеты",
+        answers: ["to escape the hustle and bustle", "escape the hustle and bustle"]
+      },
+      {
+        id: 15,
+        ru: "бельмо на глазу; нечто, уродующее вид",
+        answers: ["an eyesore", "eyesore"]
+      },
+      {
+        id: 16,
+        ru: "каменные джунгли",
+        answers: ["concrete jungle", "a concrete jungle"]
+      }
+    ];
+
+    const SCORE_MESSAGES = {
+      0:  { emoji: "😔", text: "Needs a lot more practice." },
+      1:  { emoji: "😕", text: "Keep trying — you’ll get there!" },
+      2:  { emoji: "🌱", text: "A little progress!" },
+      3:  { emoji: "🙂", text: "You're getting started!" },
+      4:  { emoji: "😊", text: "Keep up the effort!" },
+      5:  { emoji: "👍", text: "You're making progress!" },
+      6:  { emoji: "💪", text: "Good effort!" },
+      7:  { emoji: "🌟", text: "You're improving!" },
+      8:  { emoji: "😊", text: "A solid attempt!" },
+      9:  { emoji: "👏", text: "Good job!" },
+      10: { emoji: "🎯", text: "Well done!" },
+      11: { emoji: "😃", text: "Very good work!" },
+      12: { emoji: "🌟", text: "Great job!" },
+      13: { emoji: "🔥", text: "Excellent work!" },
+      14: { emoji: "🏆", text: "Impressive performance!" },
+      15: { emoji: "🤩", text: "Outstanding work!" },
+      16: { emoji: "🥇", text: "Absolutely brilliant!" }
+    };
+
+    let order = [];
+    let timeLeft = 300;
+    let timerId = null;
+    let finished = false;
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function normalize(s) {
+      return s.trim().toLowerCase().replace(/\s+/g, " ").replace(/[’']/g, "'");
+    }
+
+    function isMatch(user, answers) {
+      const u = normalize(user);
+      return answers.some(a => normalize(a) === u);
+    }
+
+    function buildQuiz() {
+      order = shuffle(ITEMS.map((_, i) => i));
+      const list = document.getElementById("quizList");
+      list.innerHTML = "";
+      finished = false;
+      document.getElementById("resultsBanner").classList.remove("show");
+      document.getElementById("scoreDisplay").textContent = "Score: — / 16";
+      document.getElementById("checkBtn").disabled = false;
+      document.getElementById("scoreModal").classList.remove("show");
+
+      order.forEach((idx, displayNum) => {
+        const item = ITEMS[idx];
+        const div = document.createElement("div");
+        div.className = "item";
+        div.dataset.idx = idx;
+
+        div.innerHTML = `
+          <div class="item-num">#${displayNum + 1}</div>
+          <div class="prompt"><span class="ru">${item.ru}</span></div>
+          <div class="answer-row">
+            <input type="text" autocomplete="off" spellcheck="false" placeholder="English equivalent…">
+          </div>
+          <div class="feedback"></div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function startTimer() {
+      clearInterval(timerId);
+      timeLeft = 300;
+      updateTimerDisplay();
+      timerId = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) {
+          clearInterval(timerId);
+          timeLeft = 0;
+          updateTimerDisplay();
+          finishQuiz(true);
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timeLeft / 60);
+      const s = timeLeft % 60;
+      const el = document.getElementById("timer");
+      el.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+      el.classList.remove("warning", "danger");
+      if (timeLeft <= 30) el.classList.add("danger");
+      else if (timeLeft <= 60) el.classList.add("warning");
+    }
+
+    function checkAnswers() {
+      if (finished) return;
+      finishQuiz(false);
+    }
+
+    function finishQuiz(timedOut) {
+      finished = true;
+      clearInterval(timerId);
+      document.getElementById("checkBtn").disabled = true;
+
+      let correctCount = 0;
+      const items = document.querySelectorAll(".item");
+
+      items.forEach(div => {
+        const idx = +div.dataset.idx;
+        const item = ITEMS[idx];
+        const input = div.querySelector("input");
+        const feedback = div.querySelector(".feedback");
+        const userVal = input.value;
+
+        const correct = isMatch(userVal, item.answers);
+
+        if (correct) {
+          correctCount++;
+          div.classList.add("correct");
+          div.classList.remove("incorrect");
+          input.classList.add("ok");
+          input.classList.remove("bad");
+          input.disabled = true;
+          feedback.textContent = "✓ Correct";
+          feedback.className = "feedback show ok";
+        } else {
+          div.classList.add("incorrect");
+          div.classList.remove("correct");
+          input.classList.add("bad");
+          input.classList.remove("ok");
+          input.disabled = true;
+          // Show primary answer (first in list)
+          const primary = item.answers[0];
+          feedback.textContent = "✗ Correct: " + primary;
+          feedback.className = "feedback show bad";
+        }
+      });
+
+      document.getElementById("scoreDisplay").innerHTML = `Score: <strong>${correctCount} / 16</strong>`;
+      const banner = document.getElementById("resultsBanner");
+      banner.classList.add("show");
+      if (timedOut) {
+        banner.textContent = `Time’s up! You scored ${correctCount} out of 16.`;
+      } else {
+        banner.textContent = `You scored ${correctCount} out of 16.`;
+      }
+
+      // Show pop-up with scale message
+      showScoreModal(correctCount);
+    }
+
+    function showScoreModal(score) {
+      const msg = SCORE_MESSAGES[score] || SCORE_MESSAGES[0];
+      document.getElementById("modalEmoji").textContent = msg.emoji;
+      document.getElementById("modalScore").textContent = `${score} / 16`;
+      document.getElementById("modalMessage").textContent = msg.text;
+      document.getElementById("scoreModal").classList.add("show");
+    }
+
+    function newRound() {
+      clearInterval(timerId);
+      buildQuiz();
+      startTimer();
+    }
+
+    document.getElementById("checkBtn").addEventListener("click", checkAnswers);
+    document.getElementById("resetBtn").addEventListener("click", newRound);
+    document.getElementById("modalClose").addEventListener("click", () => {
+      document.getElementById("scoreModal").classList.remove("show");
+    });
+    document.getElementById("scoreModal").addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById("scoreModal").classList.remove("show");
+      }
+    });
+
+    // Enter key submits
+    document.getElementById("quizList").addEventListener("keydown", e => {
+      if (e.key === "Enter" && !finished) {
+        e.preventDefault();
+        checkAnswers();
+      }
+    });
+
+    // Init
+    buildQuiz();
+    startTimer();
+  </script>
+</body>
+</html>
